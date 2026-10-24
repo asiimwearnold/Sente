@@ -11,6 +11,11 @@ from sente.rules import (
 )
 
 
+def _ensure_strict_int(val: int, name: str) -> None:
+    if isinstance(val, bool) or not isinstance(val, int):
+        raise ValueError(f"{name} must be an integer, got {type(val).__name__}: {val!r}")
+
+
 class InsufficientFunds(Exception):
     """Raised when a wallet or account has insufficient funds."""
 
@@ -76,6 +81,7 @@ class Sente:
 
     def mint(self, buyer: str, amount: int) -> Lot:
         """Mint digital cash for buyer. Uses split_premium."""
+        _ensure_strict_int(amount, "amount")
         if buyer not in self._wallets:
             raise KeyError(f"Unknown buyer: {buyer}")
         split = split_premium(amount)
@@ -104,6 +110,7 @@ class Sente:
         self, src: str, dst: str, amount: int, idem_key: Optional[str] = None
     ) -> None:
         """Transfer between wallets. Free and instant."""
+        _ensure_strict_int(amount, "amount")
         if idem_key is not None and idem_key in self._seen_idem_keys:
             return
 
@@ -126,6 +133,7 @@ class Sente:
 
     def request_exit(self, holder: str, agent: str, amount: int) -> int:
         """Locks holder's Sente in escrow. Same validation as transfer."""
+        _ensure_strict_int(amount, "amount")
         if holder not in self._wallets:
             raise KeyError(f"Unknown holder wallet: {holder}")
         if agent not in self._wallets:
@@ -235,6 +243,7 @@ class Sente:
 
     def agent_redeem(self, agent: str, amount: int) -> None:
         """Agent turns Sente into cash: wallet and bank both decrease."""
+        _ensure_strict_int(amount, "amount")
         if agent not in self._wallets:
             raise KeyError(f"Unknown agent: {agent}")
         if amount <= 0:
